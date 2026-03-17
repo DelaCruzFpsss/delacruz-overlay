@@ -3,1022 +3,555 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Delacruz Overlay Controller</title>
+  <title>RP Controller - Painel</title>
   <style>
-    :root {
-      --bg: #05070b;
-      --panel: #0c1016;
-      --panel-2: #10151d;
-      --line: rgba(255,255,255,.08);
-      --text: #f4f7fb;
-      --muted: #9aa4b2;
-      --red: #ff3d3d;
-      --red-dark: #9e1111;
-      --chip: rgba(255,61,61,.12);
-      --radius: 18px;
-      --shadow: 0 18px 40px rgba(0,0,0,.35);
+    :root{
+      --bg:#06080c;
+      --panel:#0d1016;
+      --panel2:#11151d;
+      --line:rgba(255,255,255,.08);
+      --soft:rgba(255,255,255,.04);
+      --text:#f5f7fb;
+      --muted:#8e99ab;
+      --accent:#ff3b3b;
+      --accent2:#a91212;
+      --radius:18px;
+      --shadow:0 18px 40px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}
+    button,input,textarea,select{font:inherit}
+    .topbar{
+      height:48px;display:flex;align-items:center;justify-content:space-between;
+      padding:0 18px;border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
+    }
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900}
+    .brand .icon{
+      width:28px;height:28px;border-radius:8px;display:grid;place-items:center;
+      background:rgba(255,59,59,.08);border:1px solid rgba(255,59,59,.2);color:var(--accent)
+    }
+    .actions{display:flex;gap:10px;align-items:center}
+    .btn{
+      border:1px solid var(--line);background:#0f141c;color:var(--text);
+      border-radius:10px;padding:9px 14px;cursor:pointer
+    }
+    .btn.red{background:linear-gradient(180deg,#ff4a4a,#d31919);border-color:rgba(255,59,59,.26);font-weight:800}
+    .page{max-width:1080px;margin:22px auto 0;padding:0 18px 100px}
+    .hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:22px}
+    .hero h1{margin:0 0 6px;font-size:20px}
+    .sub{font-size:12px;color:var(--muted);letter-spacing:.08em}
+    .status-box{
+      min-width:280px;background:var(--panel);border:1px solid var(--line);border-radius:14px;
+      padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:var(--shadow)
+    }
+    .status-mini{display:flex;align-items:center;gap:10px}
+    .status-dot{width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 5px rgba(255,59,59,.08)}
+    .status-label{font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.14em}
+    .status-scene{font-size:12px;color:#ff8c8c;font-weight:800;margin-top:4px}
+    .grid{display:grid;grid-template-columns:1fr 1.38fr;gap:22px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+    .section{display:none}
+    .section.active{display:block}
+    .label{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:800;margin-bottom:6px}
+    .title-red{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);font-weight:900;margin:0 0 12px}
+    .field-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .field{grid-column:span 12;display:flex;flex-direction:column;gap:6px}
+    .col-6{grid-column:span 6}.col-4{grid-column:span 4}.col-3{grid-column:span 3}
+    input,textarea,select{width:100%;background:#06090f;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px 12px;outline:none}
+    textarea{min-height:78px;resize:vertical}
+    .block{margin-top:18px;padding:14px;border-radius:16px;background:rgba(255,255,255,.02);border:1px solid var(--line)}
+    .preview-wrap{height:100%}
+    .preview-head{display:flex;justify-content:space-between;align-items:center;font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.14em;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
+    .live-pill{padding:4px 8px;border-radius:999px;background:rgba(255,59,59,.08);color:#ff9494;border:1px solid rgba(255,59,59,.16)}
+    .preview-stage{
+      aspect-ratio:16/9;border-radius:14px;border:1px solid rgba(255,255,255,.06);
+      background:#000;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center
+    }
+    .overlay-frame{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.35))}
+    .frame-size{position:absolute;right:14px;bottom:14px;font-size:10px;color:#737b89;border:1px solid rgba(255,255,255,.08);padding:4px 7px;border-radius:6px;background:rgba(255,255,255,.03)}
+    .footer-nav{
+      position:fixed;left:0;right:0;bottom:0;background:rgba(10,12,18,.96);backdrop-filter:blur(12px);
+      border-top:1px solid var(--line);padding:12px 10px 14px;z-index:30
+    }
+    .footer-inner{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+    .group-title{font-size:10px;color:#626d80;text-transform:uppercase;letter-spacing:.18em;margin-bottom:8px;padding-left:4px}
+    .group-buttons{display:flex;gap:10px;flex-wrap:wrap}
+    .tab-btn{background:#090d13;border:1px solid var(--line);color:#c8d0dc;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .tab-btn.active{background:rgba(255,59,59,.08);border-color:rgba(255,59,59,.25);color:#ff6d6d}
+    .match-card{border:1px solid var(--line);border-radius:14px;padding:12px;background:#0a0e14}
+    .match-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .team-grid{display:grid;grid-template-columns:1fr 1.3fr 70px;gap:8px;margin-bottom:8px}
+    .center{text-align:center;color:var(--muted);font-weight:900;padding:4px 0}
+    .mini-actions{display:flex;gap:8px}
+    .mini-btn{font-size:11px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#11161f;color:var(--text);cursor:pointer}
+    .search-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .range-row{display:flex;align-items:center;gap:12px}
+    input[type="range"]{padding:0}
+    .zoom-badge{font-size:11px;color:#ff8f8f;background:rgba(255,59,59,.08);border:1px solid rgba(255,59,59,.16);padding:4px 8px;border-radius:999px}
+
+    .scene-next .phase-box,.scene-next .timer-box,.scene-next .overlay-match,.scene-pause .pause-box,.scene-details .details-card,.scene-mvp .mvp-card,.scene-winner .winner-card{
+      border:1px solid rgba(255,255,255,.08);background:rgba(13,16,22,.88);backdrop-filter:blur(8px)
     }
 
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, Arial, Helvetica, sans-serif;
-      min-height: 100%;
-    }
-
-    body.overlay-mode {
-      width: 1920px;
-      height: 1080px;
-      overflow: hidden;
-      background: transparent;
-    }
-
-    button, input, textarea, select { font: inherit; }
-    .hidden { display: none !important; }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      backdrop-filter: blur(10px);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 800;
-    }
-
-    .brand-badge {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
-      border: 1px solid rgba(255,61,61,.25);
-      background: linear-gradient(135deg, #24090d, #0f0809);
-      color: var(--red);
-      font-size: 18px;
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .btn {
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: #10151d;
-      color: var(--text);
-      cursor: pointer;
-    }
-
-    .btn-red {
-      background: linear-gradient(180deg, #ff4f4f, #d11d1d);
-      color: #fff;
-      border-color: rgba(255,61,61,.3);
-      font-weight: 800;
-    }
-
-    .page {
-      max-width: 1380px;
-      margin: 0 auto;
-      padding: 28px 18px 18px;
-    }
-
-    .hero {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 22px;
-    }
-
-    .hero h1 {
-      margin: 0 0 6px;
-      font-size: 34px;
-    }
-
-    .sub {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .status-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      min-width: 310px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 14px;
-      box-shadow: var(--shadow);
-    }
-
-    .status-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: var(--chip);
-      color: #ff9e9e;
-      border: 1px solid rgba(255,61,61,.2);
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--red);
-      box-shadow: 0 0 0 6px rgba(255,61,61,.09);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1.08fr .92fr;
-      gap: 22px;
-    }
-
-    .panel {
-      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 18px;
-      box-shadow: var(--shadow);
-    }
-
-    .field-grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 12px;
-    }
-
-    .field {
-      grid-column: span 12;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-
-    .field.col-6 { grid-column: span 6; }
-    .field.col-3 { grid-column: span 3; }
-
-    label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .13em;
-      color: var(--muted);
-      font-weight: 800;
-    }
-
-    input, textarea, select {
-      width: 100%;
-      background: #05080e;
-      color: var(--text);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px 13px;
-      outline: none;
-    }
-
-    textarea { min-height: 88px; resize: vertical; }
-
-    .block {
-      margin-top: 18px;
-      padding: 14px;
-      background: rgba(255,255,255,.02);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-    }
-
-    .block-title {
-      margin: 0 0 14px;
-      color: #ff7c7c;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .15em;
-      font-weight: 900;
-    }
-
-    .matches { display: flex; flex-direction: column; gap: 12px; }
-
-    .match-card {
-      background: #0a0e14;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 14px;
-    }
-
-    .match-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .team-row {
-      display: grid;
-      grid-template-columns: 1fr 1.2fr 90px;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .versus {
-      text-align: center;
-      color: var(--muted);
-      margin: 8px 0;
-      font-weight: 900;
-    }
-
-    .preview-shell {
-      background: #090c11;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 14px;
-      min-height: 100%;
-    }
-
-    .monitor-label {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      color: var(--muted);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .12em;
-      font-weight: 800;
-    }
-
-    .live-pill {
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: rgba(255,61,61,.08);
-      border: 1px solid rgba(255,61,61,.18);
-      color: #ff9d9d;
-    }
-
-    .preview {
-      aspect-ratio: 16 / 9;
-      border-radius: 18px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,.06);
-      background: #000;
-      position: relative;
-    }
-
-    .obs-link {
-      margin-top: 12px;
-      color: #8ebeff;
-      font-size: 12px;
-      word-break: break-all;
-    }
-
-    .footer-note {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-      margin-top: 16px;
-    }
-
-    .tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 18px;
-      padding-top: 14px;
-      border-top: 1px solid var(--line);
-    }
-
-    .tab {
-      padding: 10px 12px;
-      border-radius: 12px;
-      background: #0c1016;
-      border: 1px solid var(--line);
-    }
-
-    .overlay-root {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      overflow: hidden;
-      background: transparent;
-    }
-
-    .overlay-layer {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.5));
-    }
-
-    .overlay-top {
-      position: absolute;
-      top: 34px;
-      left: 38px;
-      right: 38px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 20px;
-      z-index: 2;
-    }
-
-    .phase-box, .timer-box, .overlay-match, .overlay-empty {
-      background: rgba(7,10,15,.84);
-      border: 1px solid rgba(255,255,255,.1);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 14px 28px rgba(0,0,0,.3);
-    }
-
-    .phase-box {
-      min-width: 320px;
-      padding: 20px 22px;
-      border-radius: 20px;
-    }
-
-    .phase-title {
-      color: #c4cddd;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: .14em;
-      margin-bottom: 8px;
-      font-weight: 800;
-    }
-
-    .phase-name {
-      font-size: 54px;
-      font-weight: 900;
-      line-height: .95;
-      max-width: 600px;
-      text-transform: uppercase;
-      word-break: break-word;
-    }
-
-    .timer-box {
-      min-width: 270px;
-      padding: 18px 22px;
-      border-radius: 20px;
-      text-align: center;
-      background: linear-gradient(180deg, rgba(255,61,61,.14), rgba(255,61,61,.05));
-      border-color: rgba(255,61,61,.22);
-    }
-
-    .timer-label {
-      color: #ffc7c7;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .18em;
-      margin-bottom: 10px;
-      font-weight: 800;
-    }
-
-    .timer-value {
-      font-size: 76px;
-      font-weight: 900;
-      line-height: 1;
-    }
-
-    .sponsor-zone {
-      position: absolute;
-      left: 38px;
-      right: 38px;
-      bottom: 148px;
-      z-index: 2;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 20px;
-    }
-
-    .sponsor-logos, .sponsor-banners {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .logo-badge, .banner-badge {
-      display: grid;
-      place-items: center;
-      border-radius: 16px;
-      overflow: hidden;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.1);
-    }
-
-    .logo-badge { width: 86px; height: 86px; }
-    .banner-badge { width: 260px; height: 84px; }
-    .logo-badge img, .banner-badge img { width: 100%; height: 100%; object-fit: cover; }
-
-    .matches-bar {
-      position: absolute;
-      left: 38px;
-      right: 38px;
-      bottom: 60px;
-      z-index: 2;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .overlay-match {
-      min-width: 330px;
-      border-radius: 18px;
-      padding: 14px 16px;
-    }
-
-    .om-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: #c0cad9;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .14em;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-
-    .om-team {
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      align-items: center;
-      gap: 12px;
-      padding: 7px 0;
-      font-weight: 800;
-    }
-
-    .om-team img {
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      object-fit: cover;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.12);
-    }
-
-    .om-score { min-width: 24px; text-align: right; }
-
-    .overlay-empty {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 2;
-      border-radius: 22px;
-      padding: 26px 30px;
-      text-align: center;
-      min-width: 440px;
-    }
-
-    .overlay-empty strong {
-      display: block;
-      font-size: 30px;
-      margin-bottom: 8px;
-    }
-
-    .overlay-empty span {
-      color: #c3ccda;
-      font-size: 18px;
-    }
-
-    .ticker {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 50px;
-      background: linear-gradient(90deg, #7b1118, #2e090d);
-      border-top: 1px solid rgba(255,255,255,.08);
-      overflow: hidden;
-      z-index: 3;
-      display: flex;
-      align-items: center;
-    }
-
-    .ticker-track {
-      white-space: nowrap;
-      display: inline-block;
-      padding-left: 100%;
-      font-size: 18px;
-      font-weight: 900;
-      animation: tickerMove 20s linear infinite;
-    }
-
-    @keyframes tickerMove {
-      from { transform: translateX(0); }
-      to { transform: translateX(-100%); }
-    }
-
-    @media (max-width: 1150px) {
-      .grid { grid-template-columns: 1fr; }
-      .hero { flex-direction: column; align-items: stretch; }
-      .status-card { min-width: auto; }
-    }
-
-    @media (max-width: 760px) {
-      .team-row { grid-template-columns: 1fr; }
-      .hero h1 { font-size: 28px; }
-    }
+    .scene-next .phase-box{position:absolute;left:26px;top:22px;padding:18px 20px;border-radius:16px;min-width:240px}
+    .scene-next .phase-title{font-size:12px;color:#bac3d0;text-transform:uppercase;letter-spacing:.14em}
+    .scene-next .phase-name{font-size:28px;font-weight:900;margin-top:6px;max-width:320px}
+    .scene-next .timer-box{position:absolute;right:26px;top:22px;padding:18px 20px;border-radius:16px;min-width:180px;text-align:center;background:linear-gradient(180deg,rgba(255,59,59,.14),rgba(255,59,59,.04))}
+    .scene-next .timer-title{font-size:10px;color:#ffcaca;text-transform:uppercase;letter-spacing:.14em}
+    .scene-next .timer-value{font-size:44px;font-weight:900;margin-top:6px}
+    .scene-next .matches{position:absolute;left:50%;transform:translateX(-50%);bottom:58px;display:flex;gap:12px}
+    .scene-next .overlay-match{min-width:210px;border-radius:14px;padding:12px 14px}
+    .scene-next .om-head{display:flex;justify-content:space-between;font-size:10px;text-transform:uppercase;color:#c3cbd7;letter-spacing:.12em;margin-bottom:8px}
+    .scene-next .om-team{display:grid;grid-template-columns:1fr auto;gap:10px;padding:4px 0;font-weight:800}
+    .scene-next .ticker{position:absolute;left:0;right:0;bottom:0;height:34px;background:linear-gradient(90deg,#721117,#23090c);display:flex;align-items:center;overflow:hidden}
+    .scene-next .ticker-track{white-space:nowrap;padding-left:100%;animation:marquee 18s linear infinite;font-weight:900;font-size:13px}
+
+    .scene-pause .pause-box{text-align:center;padding:30px 26px;border-radius:18px;min-width:330px}
+    .scene-pause .pause-title{font-size:48px;font-weight:900;letter-spacing:.04em}
+    .scene-pause .pause-sub{margin-top:10px;font-size:20px;color:#d1d8e2}
+
+    .scene-details .details-card{width:68%;height:56%;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px}
+    .scene-details .md-title{text-align:center;font-size:18px;font-weight:900}
+    .scene-details .score-head{display:grid;grid-template-columns:1fr 80px 80px 1fr;align-items:center;gap:12px}
+    .scene-details .team-banner{padding:10px 12px;background:rgba(255,59,59,.18);font-weight:900}
+    .scene-details .team-banner.right{background:rgba(255,255,255,.08);text-align:right}
+    .scene-details .score-num{text-align:center;font-size:26px;font-weight:900}
+    .scene-details .roster{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1}
+    .scene-details .roster-col{border:1px solid rgba(255,255,255,.06);padding:10px}
+    .scene-details .player-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+
+    .scene-mvp .mvp-card{width:54%;height:48%;border-radius:18px;padding:18px 22px;position:relative}
+    .scene-mvp .mvp-name{text-align:center;font-size:28px;font-weight:900;margin-top:2px}
+    .scene-mvp .mvp-badge{position:absolute;right:18px;top:18px;background:rgba(255,59,59,.18);padding:6px 10px;border-radius:8px;font-size:11px;font-weight:800}
+    .scene-mvp .mvp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+    .scene-mvp .stat{display:flex;justify-content:space-between;padding:8px 10px;background:rgba(255,255,255,.04);font-size:13px}
+
+    .scene-winner .winner-card{text-align:center;padding:26px 30px;border-radius:18px;min-width:280px}
+    .scene-winner .winner-logo{width:100px;height:100px;border-radius:12px;margin:0 auto 16px;background:#1a1f28;display:grid;place-items:center;font-size:28px;font-weight:900}
+    .scene-winner .winner-name{font-size:22px;font-weight:800}
+    .scene-winner .winner-text{font-size:36px;color:#ff5959;font-weight:900;letter-spacing:.12em;margin-top:8px}
+
+    @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+    @media (max-width:1200px){.grid{grid-template-columns:1fr}.footer-inner{grid-template-columns:1fr 1fr}}
+    @media (max-width:760px){.hero{flex-direction:column}.footer-inner{grid-template-columns:1fr}.two-col,.search-row,.team-grid{grid-template-columns:1fr}.actions{flex-wrap:wrap}}
   </style>
 </head>
 <body>
-  <div id="controllerView">
-    <div class="topbar">
-      <div class="brand">
-        <div class="brand-badge">▣</div>
-        <div>RP Controller</div>
+  <div class="topbar">
+    <div class="brand"><div class="icon">▣</div><div>RP Controller</div></div>
+    <div class="actions">
+      <button class="btn" id="togglePreview">Esconder overlay</button>
+      <button class="btn red" id="copyObs">Copiar link OBS</button>
+      <button class="btn" id="newTab">Nova aba</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="hero">
+      <div>
+        <h1 id="sceneTitle">Próximos Jogos</h1>
+        <div class="sub">Configure os dados abaixo antes de enviar para o OBS.</div>
       </div>
-      <div class="actions">
-        <button class="btn" id="togglePreviewBtn">Esconder overlay</button>
-        <button class="btn btn-red" id="copyLinkBtn">Copiar link OBS</button>
-        <button class="btn" id="openOverlayBtn">Nova aba</button>
+      <div class="status-box">
+        <div class="status-mini">
+          <div class="status-dot"></div>
+          <div>
+            <div class="status-label">Status OBS</div>
+            <div class="status-scene" id="statusScene">Próximos Jogos</div>
+          </div>
+        </div>
+        <button class="btn red" id="publishBtn">Atualizar live</button>
       </div>
     </div>
 
-    <div class="page">
-      <div class="hero">
-        <div>
-          <h1>Próximos Jogos</h1>
-          <div class="sub">Versão mais segura, com fallback visível e overlay em 1920x1080.</div>
-        </div>
-        <div class="status-card">
-          <div>
-            <div style="color:var(--muted); font-size:12px; margin-bottom:6px;">Status OBS</div>
-            <div class="status-chip"><span class="dot"></span><span id="statusScene">Próximos Jogos</span></div>
-          </div>
-          <button class="btn btn-red" id="publishBtn">Atualizar live</button>
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="panel">
-          <div class="field-grid">
-            <div class="field col-6">
-              <label for="phase">Título da fase</label>
-              <input id="phase" value="MATA-MATA MD1" />
+    <div class="grid">
+      <div>
+        <section class="section active" data-scene="next">
+          <div class="card">
+            <div class="field-grid">
+              <div class="field col-6"><div class="label">Título da fase</div><input id="next_phase" value="FASE DE GRUPOS"></div>
+              <div class="field col-3"><div class="label">Timer (min)</div><input id="next_min" type="number" value="10"></div>
+              <div class="field col-3"><div class="label">Timer (seg)</div><input id="next_sec" type="number" value="0"></div>
+              <div class="field"><div class="label">Texto animado do rodapé (ticker)</div><input id="next_ticker" value="REDPLAY VALORANT TOUR | FASE DE GRUPOS | NARRADOR: @tches"></div>
             </div>
-            <div class="field col-3">
-              <label for="minutes">Timer (min)</label>
-              <input id="minutes" type="number" min="0" max="999" value="10" />
+            <div class="block">
+              <div class="title-red">Patrocinadores</div>
+              <div class="field"><div class="label">Logos pequenos (topo dir)</div><textarea id="next_logos">https://i.imgur.com/KzUHwG8.png</textarea></div>
+              <div class="field"><div class="label">Banners grandes (esq)</div><textarea id="next_banners">https://i.imgur.com/mAvKsJN.png, https://i.imgur.com/8cvB0Zf.png</textarea></div>
             </div>
-            <div class="field col-3">
-              <label for="seconds">Timer (seg)</label>
-              <input id="seconds" type="number" min="0" max="59" value="0" />
-            </div>
-            <div class="field">
-              <label for="tickerText">Texto animado do rodapé</label>
-              <input id="tickerText" value="MENTORA.GG" />
+            <div class="block">
+              <div class="match-head">
+                <div class="title-red" style="margin:0">Confrontos e placares</div>
+                <div class="mini-actions">
+                  <select id="next_layout"><option value="1">1 jogo (centro)</option><option value="2">2 jogos</option><option value="3">3 jogos</option></select>
+                  <button class="mini-btn" id="addMatch">+ jogo</button>
+                </div>
+              </div>
+              <div id="matchesContainer"></div>
             </div>
           </div>
+        </section>
 
-          <div class="block">
-            <h3 class="block-title">Patrocinadores</h3>
-            <div class="field">
-              <label for="smallLogos">Logos pequenos (URLs separadas por vírgula)</label>
-              <textarea id="smallLogos"></textarea>
-            </div>
-            <div class="field">
-              <label for="bigBanners">Banners grandes (URLs separadas por vírgula)</label>
-              <textarea id="bigBanners"></textarea>
+        <section class="section" data-scene="pause">
+          <div class="card">
+            <div class="field-grid">
+              <div class="field"><div class="label">Título principal</div><input id="pause_title" value="FIM"></div>
+              <div class="field"><div class="label">Subtítulo (mensagem menor)</div><input id="pause_sub" value="OBRIGADO POR ASSISTIR"></div>
             </div>
           </div>
+        </section>
 
-          <div class="block">
-            <div class="match-head">
-              <h3 class="block-title" style="margin:0;">Confrontos e placares</h3>
-              <div style="display:flex; gap:10px; align-items:center;">
-                <select id="layoutMode" style="width:auto; min-width:180px;">
-                  <option value="1">Layout: 1 jogo</option>
-                  <option value="2">Layout: 2 jogos</option>
-                  <option value="3">Layout: 3 jogos</option>
-                </select>
-                <button class="btn" id="addMatchBtn">+ jogo</button>
+        <section class="section" data-scene="details">
+          <div class="card">
+            <div class="block" style="margin-top:0">
+              <div class="title-red">Buscar dados (API)</div>
+              <div class="search-row">
+                <div class="field"><div class="label">Riot Nick</div><input id="details_nick" value="Zinx"></div>
+                <div class="field"><div class="label">Riot Tag</div><input id="details_tag" value="3467"></div>
+              </div>
+              <div class="mini-actions"><button class="mini-btn">Atualizar somente no studio</button><button class="mini-btn" style="background:linear-gradient(180deg,#ff4343,#da1616);border-color:rgba(255,59,59,.25)">Atualizar no ar</button></div>
+            </div>
+            <div class="block">
+              <div class="match-head"><div class="label">Personalização dos times</div><button class="mini-btn" id="swapDetailsTeams">Inverter times</button></div>
+              <div class="two-col">
+                <div>
+                  <div class="field"><div class="label">Nome Time 1</div><input id="details_team1" value="FDP"></div>
+                  <div class="field"><div class="label">URL logo time 1</div><input id="details_logo1" value="https://i.imgur.com/Nu7Y4mM.png"></div>
+                </div>
+                <div>
+                  <div class="field"><div class="label">Nome Time 2</div><input id="details_team2" value="NBX"></div>
+                  <div class="field"><div class="label">URL logo time 2</div><input id="details_logo2" value="https://i.imgur.com/ucGXk1B.png"></div>
+                </div>
               </div>
             </div>
-            <div class="matches" id="matchesContainer"></div>
           </div>
+        </section>
 
-          <div class="tabs">
-            <div class="tab">Próximos Jogos</div>
-            <div class="tab">Tela de Pause</div>
-            <div class="tab">Sorteio de Grupos</div>
-            <div class="tab">Detalhes da Partida</div>
-            <div class="tab">MVP</div>
-            <div class="tab">Tabela</div>
-          </div>
-
-          <div class="footer-note">
-            Se a overlay não encontrar dados publicados, ela mostra um layout de segurança em vez de tela preta.
-          </div>
-        </div>
-
-        <div class="panel" id="previewPanel">
-          <div class="preview-shell">
-            <div class="monitor-label">
-              <span>Monitor (link do OBS)</span>
-              <span class="live-pill">live</span>
+        <section class="section" data-scene="mvp">
+          <div class="card">
+            <div class="block" style="margin-top:0">
+              <div class="title-red">Buscar dados do jogador</div>
+              <div class="field-grid">
+                <div class="field col-4"><div class="label">Nick</div><input id="mvp_nick" value="Justplay"></div>
+                <div class="field col-4"><div class="label">Tag</div><input id="mvp_tag" value="lrk14"></div>
+                <div class="field col-4"><div class="label">Mapas</div><select id="mvp_map"><option>1 Mapa (MD1)</option><option>2 Mapa (MD3)</option><option>3 Mapa (MD5)</option></select></div>
+                <div class="field"><button class="btn">Puxar histórico</button></div>
+              </div>
             </div>
-            <div class="preview" id="previewMount"></div>
-            <div class="obs-link" id="obsLinkText"></div>
+            <div class="block">
+              <div class="label">Visual do MVP</div>
+              <div class="field"><div class="label">Nome da equipe</div><input id="mvp_team" value="Justplay"></div>
+              <div class="two-col">
+                <div class="field"><div class="label">URL foto jogador</div><input id="mvp_photo" value=""></div>
+                <div class="field"><div class="label">URL logo time</div><input id="mvp_logo" value=""></div>
+              </div>
+              <div class="field" style="margin-top:12px">
+                <div class="match-head"><div class="label">Ajuste de zoom (foto)</div><span class="zoom-badge" id="zoomValue">100%</span></div>
+                <div class="range-row"><input id="mvp_zoom" type="range" min="50" max="180" value="100"></div>
+              </div>
+            </div>
           </div>
+        </section>
+
+        <section class="section" data-scene="winner">
+          <div class="card">
+            <div class="block" style="margin-top:0">
+              <div class="title-red">Vencedor</div>
+              <div class="field"><div class="label">Nome do time</div><input id="winner_name" value="arise"></div>
+              <div class="field"><div class="label">Logo do time (URL)</div><input id="winner_logo" value="https://i.imgur.com/gS1QMVq.png"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="previewCol">
+        <div class="card preview-wrap">
+          <div class="preview-head"><span>Monitor (link do OBS)</span><span class="live-pill">live</span></div>
+          <div class="preview-stage" id="previewStage"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <template id="overlayTemplate">
-    <div class="overlay-root">
-      <div class="overlay-layer"></div>
-      <div class="overlay-top">
-        <div class="phase-box">
-          <div class="phase-title">Próxima fase</div>
-          <div class="phase-name" data-phase></div>
-        </div>
-        <div class="timer-box">
-          <div class="timer-label">Contagem regressiva</div>
-          <div class="timer-value" data-timer></div>
+  <div class="footer-nav">
+    <div class="footer-inner">
+      <div>
+        <div class="group-title">Pré-jogo & intervalo</div>
+        <div class="group-buttons">
+          <button class="tab-btn active" data-tab="next">Próximos Jogos</button>
+          <button class="tab-btn" data-tab="pause">Tela de Pause</button>
+          <button class="tab-btn" data-tab="draw">Sorteio de Grupos</button>
         </div>
       </div>
-
-      <div class="sponsor-zone">
-        <div class="sponsor-logos" data-logos></div>
-        <div class="sponsor-banners" data-banners></div>
+      <div>
+        <div class="group-title">Durante & pós-jogo</div>
+        <div class="group-buttons">
+          <button class="tab-btn" data-tab="details">Detalhes da Partida</button>
+          <button class="tab-btn" data-tab="mvp">Estatísticas MVP</button>
+          <button class="tab-btn" data-tab="table">Tabela de Classificação</button>
+          <button class="tab-btn" data-tab="winner">Vencedor</button>
+        </div>
       </div>
-
-      <div class="matches-bar" data-matches></div>
-      <div class="ticker"><div class="ticker-track" data-ticker></div></div>
+      <div>
+        <div class="group-title">Apresentação de times</div>
+        <div class="group-buttons">
+          <button class="tab-btn" data-tab="team1">Elenco Time 1</button>
+          <button class="tab-btn" data-tab="team2">Elenco Time 2</button>
+        </div>
+      </div>
+      <div>
+        <div class="group-title">Configurações</div>
+        <div class="group-buttons">
+          <button class="tab-btn" data-tab="settings">Gerenciar Times</button>
+        </div>
+      </div>
     </div>
-  </template>
+  </div>
 
   <script>
-    const STORAGE_KEY = 'delacruz-overlay-safe-v2';
-    const PUBLISHED_KEY = STORAGE_KEY + ':published';
-
-    const DEFAULT_STATE = {
-      phase: 'MATA-MATA MD1',
-      minutes: 10,
-      seconds: 0,
-      tickerText: 'MENTORA.GG',
-      smallLogos: '',
-      bigBanners: '',
-      layoutMode: '1',
-      publishedAt: Date.now(),
-      matches: [
-        {
-          team1: 'VNTS',
-          logo1: 'https://placehold.co/80x80/png?text=V',
-          score1: '0',
-          team2: 'DKF',
-          logo2: 'https://placehold.co/80x80/png?text=D',
-          score2: '0'
-        }
-      ]
+    const state = {
+      scene: 'next',
+      next: {
+        phase: 'FASE DE GRUPOS', min: 10, sec: 0,
+        ticker: 'REDPLAY VALORANT TOUR | FASE DE GRUPOS | NARRADOR: @tches',
+        logos: 'https://i.imgur.com/KzUHwG8.png',
+        banners: 'https://i.imgur.com/mAvKsJN.png, https://i.imgur.com/8cvB0Zf.png',
+        layout: 1,
+        matches: [
+          { team1:'VNTS', logo1:'https://placehold.co/64x64/png?text=V', score1:'0', team2:'DKF', logo2:'https://placehold.co/64x64/png?text=D', score2:'0' }
+        ]
+      },
+      pause: { title:'FIM', sub:'OBRIGADO POR ASSISTIR' },
+      details: { team1:'FDP', team2:'NBX', score1:'13', score2:'8', players1:['JUSTPLAY','REAPERGOD','DIVA','ATQ','POLOW JESUS'], players2:['SLADE QUEEN','VASCONIA','PLOCK','BOA','LINDONA'] },
+      mvp: { name:'JUSTPLAY', team:'Justplay', acs:'149', kd:'12/2/5', hs:'12.8%', adr:'W32L3J', zoom:100 },
+      winner: { name:'arise', logo:'https://i.imgur.com/gS1QMVq.png' }
     };
 
-    const $ = (selector) => document.querySelector(selector);
+    const sceneNames = {
+      next:'Próximos Jogos', pause:'Tela de Pause', details:'Detalhes da Partida', mvp:'Estatísticas MVP', winner:'Vencedor',
+      draw:'Sorteio de Grupos', table:'Tabela de Classificação', team1:'Elenco Time 1', team2:'Elenco Time 2', settings:'Gerenciar Times'
+    };
 
-    function deepClone(obj) {
-      return JSON.parse(JSON.stringify(obj));
-    }
+    const $ = s => document.querySelector(s);
+    const $$ = s => [...document.querySelectorAll(s)];
 
-    function safeParse(text, fallback) {
-      try {
-        return JSON.parse(text);
-      } catch {
-        return fallback;
-      }
-    }
+    function parseList(value){ return String(value||'').split(',').map(v=>v.trim()).filter(Boolean); }
 
-    function loadState() {
-      const saved = safeParse(localStorage.getItem(STORAGE_KEY), null);
-      if (!saved) return deepClone(DEFAULT_STATE);
-      return {
-        ...deepClone(DEFAULT_STATE),
-        ...saved,
-        matches: Array.isArray(saved.matches) && saved.matches.length ? saved.matches : deepClone(DEFAULT_STATE.matches)
-      };
-    }
-
-    let state = loadState();
-    let previewSeconds = Math.max(0, (Number(state.minutes) || 0) * 60 + (Number(state.seconds) || 0));
-    let previewTimer = null;
-
-    function saveState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-
-    function formatTime(totalSeconds) {
-      const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-      const secs = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
-      return `${mins}:${secs}`;
-    }
-
-    function parseUrls(raw) {
-      return String(raw || '')
-        .split(',')
-        .map(item => item.trim())
-        .filter(Boolean);
-    }
-
-    function esc(text) {
-      return String(text ?? '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-    }
-
-    function createImgBadge(url, className) {
-      const wrap = document.createElement('div');
-      wrap.className = className;
-      const img = document.createElement('img');
-      img.src = url;
-      img.alt = 'imagem';
-      img.onerror = () => {
-        wrap.innerHTML = '<span style="font-size:12px;color:#c7cfdb;padding:10px;text-align:center;">Imagem indisponível</span>';
-      };
-      wrap.appendChild(img);
-      return wrap;
-    }
-
-    function createOverlayNode(data, timeLeft) {
-      const frag = document.getElementById('overlayTemplate').content.cloneNode(true);
-      frag.querySelector('[data-phase]').textContent = data.phase || 'PRÓXIMA FASE';
-      frag.querySelector('[data-timer]').textContent = formatTime(timeLeft);
-      frag.querySelector('[data-ticker]').textContent = ((data.tickerText || 'DELACRUZ OVERLAY') + '   •   ').repeat(5);
-
-      const logos = frag.querySelector('[data-logos]');
-      const banners = frag.querySelector('[data-banners]');
-      const matches = frag.querySelector('[data-matches]');
-
-      const logoUrls = parseUrls(data.smallLogos).slice(0, 5);
-      const bannerUrls = parseUrls(data.bigBanners).slice(0, 3);
-      const layoutCount = Math.max(1, Math.min(3, Number(data.layoutMode) || 1));
-      const selectedMatches = Array.isArray(data.matches) && data.matches.length ? data.matches.slice(0, layoutCount) : [];
-
-      logoUrls.forEach(url => logos.appendChild(createImgBadge(url, 'logo-badge')));
-      bannerUrls.forEach(url => banners.appendChild(createImgBadge(url, 'banner-badge')));
-
-      if (!selectedMatches.length) {
-        const empty = document.createElement('div');
-        empty.className = 'overlay-empty';
-        empty.innerHTML = '<strong>Overlay pronta</strong><span>Cadastre pelo menos um confronto no painel de controle.</span>';
-        frag.querySelector('.overlay-root').appendChild(empty);
-      } else {
-        selectedMatches.forEach((m, index) => {
-          const card = document.createElement('div');
-          card.className = 'overlay-match';
-          card.innerHTML = `
-            <div class="om-head"><span>Jogo ${index + 1}</span><span>Ao vivo</span></div>
-            <div class="om-team">
-              <span>${esc(m.team1 || 'Time 1')}</span>
-              <img src="${esc(m.logo1 || 'https://placehold.co/80x80/png?text=1')}" alt="${esc(m.team1 || 'Time 1')}">
-              <span class="om-score">${esc(m.score1 || '0')}</span>
-            </div>
-            <div class="om-team">
-              <span>${esc(m.team2 || 'Time 2')}</span>
-              <img src="${esc(m.logo2 || 'https://placehold.co/80x80/png?text=2')}" alt="${esc(m.team2 || 'Time 2')}">
-              <span class="om-score">${esc(m.score2 || '0')}</span>
-            </div>
-          `;
-          const imgs = card.querySelectorAll('img');
-          imgs.forEach(img => {
-            img.onerror = () => { img.src = 'https://placehold.co/80x80/png?text=?'; };
-          });
-          matches.appendChild(card);
-        });
-      }
-
-      return frag;
-    }
-
-    function bindField(id) {
+    function bindInput(id, path, transform = v => v){
       const el = document.getElementById(id);
-      if (!el) return;
-      el.value = state[id] ?? '';
+      if(!el) return;
+      const [group,key] = path;
       el.addEventListener('input', () => {
-        state[id] = el.value;
-        if (id === 'minutes' || id === 'seconds') {
-          previewSeconds = Math.max(0, (Number(state.minutes) || 0) * 60 + (Number(state.seconds) || 0));
-        }
-        saveState();
-        updatePreview();
+        state[group][key] = transform(el.value);
+        if(id === 'mvp_zoom') $('#zoomValue').textContent = el.value + '%';
+        renderPreview();
       });
     }
 
-    function renderMatchInputs() {
-      const container = document.getElementById('matchesContainer');
-      container.innerHTML = '';
-
-      state.matches.forEach((match, index) => {
-        const card = document.createElement('div');
-        card.className = 'match-card';
-        card.innerHTML = `
+    function renderMatchesInputs(){
+      const wrap = $('#matchesContainer');
+      wrap.innerHTML = '';
+      state.next.matches.forEach((m, i) => {
+        const node = document.createElement('div');
+        node.className = 'match-card';
+        node.innerHTML = `
           <div class="match-head">
-            <strong>Jogo ${index + 1}</strong>
-            <div style="display:flex; gap:8px;">
-              <button class="btn" data-action="swap" data-index="${index}">Inverter times</button>
-              <button class="btn" data-action="remove" data-index="${index}">Remover</button>
+            <strong>Jogo ${i+1}</strong>
+            <div class="mini-actions">
+              <button class="mini-btn" data-swap="${i}">Inverter times</button>
+              <button class="mini-btn" data-remove="${i}">Remover</button>
             </div>
           </div>
-          <div class="team-row">
-            <div>
-              <label>Nome time 1</label>
-              <input data-bind="team1" data-index="${index}" value="${esc(match.team1)}">
-            </div>
-            <div>
-              <label>Logo time 1 (URL)</label>
-              <input data-bind="logo1" data-index="${index}" value="${esc(match.logo1)}">
-            </div>
-            <div>
-              <label>Placar T1</label>
-              <input data-bind="score1" data-index="${index}" value="${esc(match.score1)}">
-            </div>
+          <div class="team-grid">
+            <div><div class="label">Nome time 1</div><input data-match="${i}" data-key="team1" value="${m.team1}"></div>
+            <div><div class="label">Logo time 1 (URL)</div><input data-match="${i}" data-key="logo1" value="${m.logo1}"></div>
+            <div><div class="label">Placar T1</div><input data-match="${i}" data-key="score1" value="${m.score1}"></div>
           </div>
-          <div class="versus">VS</div>
-          <div class="team-row">
-            <div>
-              <label>Nome time 2</label>
-              <input data-bind="team2" data-index="${index}" value="${esc(match.team2)}">
-            </div>
-            <div>
-              <label>Logo time 2 (URL)</label>
-              <input data-bind="logo2" data-index="${index}" value="${esc(match.logo2)}">
-            </div>
-            <div>
-              <label>Placar T2</label>
-              <input data-bind="score2" data-index="${index}" value="${esc(match.score2)}">
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
+          <div class="center">VS</div>
+          <div class="team-grid">
+            <div><div class="label">Nome time 2</div><input data-match="${i}" data-key="team2" value="${m.team2}"></div>
+            <div><div class="label">Logo time 2 (URL)</div><input data-match="${i}" data-key="logo2" value="${m.logo2}"></div>
+            <div><div class="label">Placar T2</div><input data-match="${i}" data-key="score2" value="${m.score2}"></div>
+          </div>`;
+        wrap.appendChild(node);
       });
 
-      container.querySelectorAll('[data-bind]').forEach(input => {
-        input.addEventListener('input', (e) => {
-          const idx = Number(e.target.dataset.index);
-          const key = e.target.dataset.bind;
-          state.matches[idx][key] = e.target.value;
-          saveState();
-          updatePreview();
+      $$('[data-match]').forEach(input => {
+        input.addEventListener('input', e => {
+          const i = Number(e.target.dataset.match);
+          const key = e.target.dataset.key;
+          state.next.matches[i][key] = e.target.value;
+          renderPreview();
         });
       });
 
-      container.querySelectorAll('[data-action="swap"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx = Number(btn.dataset.index);
-          const m = state.matches[idx];
-          [m.team1, m.team2] = [m.team2, m.team1];
-          [m.logo1, m.logo2] = [m.logo2, m.logo1];
-          [m.score1, m.score2] = [m.score2, m.score1];
-          saveState();
-          renderMatchInputs();
-          updatePreview();
-        });
-      });
+      $$('[data-swap]').forEach(btn => btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.swap);
+        const m = state.next.matches[i];
+        [m.team1,m.team2] = [m.team2,m.team1];
+        [m.logo1,m.logo2] = [m.logo2,m.logo1];
+        [m.score1,m.score2] = [m.score2,m.score1];
+        renderMatchesInputs();
+        renderPreview();
+      }));
 
-      container.querySelectorAll('[data-action="remove"]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (state.matches.length <= 1) return;
-          const idx = Number(btn.dataset.index);
-          state.matches.splice(idx, 1);
-          saveState();
-          renderMatchInputs();
-          updatePreview();
-        });
-      });
+      $$('[data-remove]').forEach(btn => btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.remove);
+        if(state.next.matches.length === 1) return;
+        state.next.matches.splice(i,1);
+        renderMatchesInputs();
+        renderPreview();
+      }));
     }
 
-    function updatePreview() {
-      const mount = document.getElementById('previewMount');
-      if (!mount) return;
-      mount.innerHTML = '';
-      mount.appendChild(createOverlayNode(state, previewSeconds));
-      const previewLink = `${location.origin}${location.pathname}?overlay=1`;
-      const obsText = document.getElementById('obsLinkText');
-      if (obsText) obsText.textContent = previewLink;
+    function setScene(scene){
+      state.scene = scene;
+      $('#sceneTitle').textContent = sceneNames[scene] || 'Painel';
+      $('#statusScene').textContent = sceneNames[scene] || 'Painel';
+      $$('.section').forEach(sec => sec.classList.toggle('active', sec.dataset.scene === scene));
+      $$('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === scene));
+      const liveText = (scene === 'next') ? 'Atualizar live' : 'Colocar no ar';
+      $('#publishBtn').textContent = liveText;
+      if(!['next','pause','details','mvp','winner'].includes(scene)){
+        $('#sceneTitle').textContent = sceneNames[scene] + ' (em breve)';
+      }
+      renderPreview();
     }
 
-    function publishState() {
-      const payload = deepClone(state);
-      payload.publishedAt = Date.now();
-      localStorage.setItem(PUBLISHED_KEY, JSON.stringify(payload));
-      alert('Overlay publicada.');
-    }
+    function renderPreview(){
+      const stage = $('#previewStage');
+      stage.innerHTML = '<div class="overlay-frame"></div><div class="frame-size">1920x1080</div>';
 
-    function addMatch() {
-      state.matches.push({
-        team1: 'Time 1',
-        logo1: 'https://placehold.co/80x80/png?text=1',
-        score1: '0',
-        team2: 'Time 2',
-        logo2: 'https://placehold.co/80x80/png?text=2',
-        score2: '0'
-      });
-      saveState();
-      renderMatchInputs();
-      updatePreview();
-    }
-
-    function startPreviewTimer() {
-      clearInterval(previewTimer);
-      previewTimer = setInterval(() => {
-        if (previewSeconds > 0) previewSeconds -= 1;
-        const el = document.querySelector('#previewMount [data-timer]');
-        if (el) el.textContent = formatTime(previewSeconds);
-      }, 1000);
-    }
-
-    function mountController() {
-      ['phase', 'minutes', 'seconds', 'tickerText', 'smallLogos', 'bigBanners', 'layoutMode'].forEach(bindField);
-      renderMatchInputs();
-      updatePreview();
-      startPreviewTimer();
-
-      document.getElementById('publishBtn').addEventListener('click', publishState);
-      document.getElementById('addMatchBtn').addEventListener('click', addMatch);
-
-      document.getElementById('togglePreviewBtn').addEventListener('click', () => {
-        document.getElementById('previewPanel').classList.toggle('hidden');
-      });
-
-      document.getElementById('copyLinkBtn').addEventListener('click', async () => {
-        const url = `${location.origin}${location.pathname}?overlay=1`;
-        try {
-          await navigator.clipboard.writeText(url);
-          alert('Link copiado.');
-        } catch {
-          prompt('Copie o link abaixo:', url);
-        }
-      });
-
-      document.getElementById('openOverlayBtn').addEventListener('click', () => {
-        window.open(`${location.pathname}?overlay=1`, '_blank');
-      });
-    }
-
-    function mountOverlayOnly() {
-      document.body.classList.add('overlay-mode');
-      document.body.innerHTML = '';
-
-      let published = safeParse(localStorage.getItem(PUBLISHED_KEY), null);
-      if (!published) {
-        published = deepClone(DEFAULT_STATE);
+      if(state.scene === 'next'){
+        const wrap = document.createElement('div');
+        wrap.className = 'scene-next';
+        const matchesHtml = state.next.matches.slice(0, Number(state.next.layout)).map((m,i) => `
+          <div class="overlay-match">
+            <div class="om-head"><span>Jogo ${i+1}</span><span>Ao vivo</span></div>
+            <div class="om-team"><span>${m.team1}</span><span>${m.score1}</span></div>
+            <div class="om-team"><span>${m.team2}</span><span>${m.score2}</span></div>
+          </div>`).join('');
+        wrap.innerHTML = `
+          <div class="phase-box"><div class="phase-title">Próxima fase</div><div class="phase-name">${state.next.phase}</div></div>
+          <div class="timer-box"><div class="timer-title">Contagem regressiva</div><div class="timer-value">${String(state.next.min).padStart(2,'0')}:${String(state.next.sec).padStart(2,'0')}</div></div>
+          <div class="matches">${matchesHtml}</div>
+          <div class="ticker"><div class="ticker-track">${state.next.ticker} • ${state.next.ticker} • ${state.next.ticker}</div></div>`;
+        stage.appendChild(wrap);
+        return;
       }
 
-      let overlaySeconds = Math.max(0, (Number(published.minutes) || 0) * 60 + (Number(published.seconds) || 0));
-
-      function render() {
-        document.body.innerHTML = '';
-        document.body.appendChild(createOverlayNode(published, overlaySeconds));
+      if(state.scene === 'pause'){
+        const wrap = document.createElement('div');
+        wrap.className = 'scene-pause';
+        wrap.innerHTML = `<div class="pause-box"><div class="pause-title">${state.pause.title}</div><div class="pause-sub">${state.pause.sub}</div></div>`;
+        stage.appendChild(wrap);
+        return;
       }
 
-      render();
+      if(state.scene === 'details'){
+        const wrap = document.createElement('div');
+        wrap.className = 'scene-details';
+        const leftPlayers = state.details.players1.map((p,idx)=>`<div class="player-row"><span>${p}</span><strong>${[323,246,207,178,150][idx] || 100}</strong></div>`).join('');
+        const rightPlayers = state.details.players2.map((p,idx)=>`<div class="player-row"><span>${p}</span><strong>${[262,179,172,84,54][idx] || 90}</strong></div>`).join('');
+        wrap.innerHTML = `
+          <div class="details-card">
+            <div class="md-title">MATCH DETAILS</div>
+            <div class="score-head">
+              <div class="team-banner">${state.details.team1}</div>
+              <div class="score-num">${state.details.score1}</div>
+              <div class="score-num">${state.details.score2}</div>
+              <div class="team-banner right">${state.details.team2}</div>
+            </div>
+            <div class="roster">
+              <div class="roster-col">${leftPlayers}</div>
+              <div class="roster-col">${rightPlayers}</div>
+            </div>
+          </div>`;
+        stage.appendChild(wrap);
+        return;
+      }
 
-      setInterval(() => {
-        if (overlaySeconds > 0) overlaySeconds -= 1;
-        const timerEl = document.querySelector('[data-timer]');
-        if (timerEl) timerEl.textContent = formatTime(overlaySeconds);
-      }, 1000);
+      if(state.scene === 'mvp'){
+        const wrap = document.createElement('div');
+        wrap.className = 'scene-mvp';
+        wrap.innerHTML = `
+          <div class="mvp-card">
+            <div class="mvp-badge">MVP DA SÉRIE</div>
+            <div class="mvp-name">${state.mvp.name}</div>
+            <div class="mvp-grid">
+              <div class="stat"><span>ACS</span><strong>${state.mvp.acs}</strong></div>
+              <div class="stat"><span>KD</span><strong>${state.mvp.kd}</strong></div>
+              <div class="stat"><span>HS%</span><strong>${state.mvp.hs}</strong></div>
+              <div class="stat"><span>ADR</span><strong>${state.mvp.adr}</strong></div>
+            </div>
+          </div>`;
+        stage.appendChild(wrap);
+        return;
+      }
 
-      window.addEventListener('storage', (event) => {
-        if (event.key === PUBLISHED_KEY && event.newValue) {
-          published = safeParse(event.newValue, deepClone(DEFAULT_STATE));
-          overlaySeconds = Math.max(0, (Number(published.minutes) || 0) * 60 + (Number(published.seconds) || 0));
-          render();
-        }
-      });
+      if(state.scene === 'winner'){
+        const wrap = document.createElement('div');
+        wrap.className = 'scene-winner';
+        wrap.innerHTML = `
+          <div class="winner-card">
+            <div class="winner-logo">🏆</div>
+            <div class="winner-name">${state.winner.name}</div>
+            <div class="winner-text">VITÓRIA</div>
+          </div>`;
+        stage.appendChild(wrap);
+        return;
+      }
+
+      const placeholder = document.createElement('div');
+      placeholder.style.color = '#7b8595';
+      placeholder.style.fontWeight = '700';
+      placeholder.textContent = 'Tela em breve';
+      stage.appendChild(placeholder);
     }
 
-    if (new URLSearchParams(location.search).get('overlay') === '1') {
-      mountOverlayOnly();
-    } else {
-      mountController();
-    }
+    bindInput('next_phase',['next','phase']);
+    bindInput('next_min',['next','min'], Number);
+    bindInput('next_sec',['next','sec'], Number);
+    bindInput('next_ticker',['next','ticker']);
+    bindInput('next_logos',['next','logos']);
+    bindInput('next_banners',['next','banners']);
+    bindInput('pause_title',['pause','title']);
+    bindInput('pause_sub',['pause','sub']);
+    bindInput('details_team1',['details','team1']);
+    bindInput('details_team2',['details','team2']);
+    bindInput('mvp_nick',['mvp','name']);
+    bindInput('mvp_team',['mvp','team']);
+    bindInput('mvp_zoom',['mvp','zoom'], Number);
+    bindInput('winner_name',['winner','name']);
+    bindInput('winner_logo',['winner','logo']);
+
+    $('#next_layout').addEventListener('input', e => { state.next.layout = Number(e.target.value); renderPreview(); });
+    $('#addMatch').addEventListener('click', () => {
+      state.next.matches.push({ team1:'Time 1', logo1:'https://placehold.co/64x64/png?text=1', score1:'0', team2:'Time 2', logo2:'https://placehold.co/64x64/png?text=2', score2:'0' });
+      renderMatchesInputs();
+      renderPreview();
+    });
+
+    $('#swapDetailsTeams').addEventListener('click', () => {
+      [state.details.team1, state.details.team2] = [state.details.team2, state.details.team1];
+      [state.details.score1, state.details.score2] = [state.details.score2, state.details.score1];
+      $('#details_team1').value = state.details.team1;
+      $('#details_team2').value = state.details.team2;
+      renderPreview();
+    });
+
+    $('#togglePreview').addEventListener('click', () => {
+      $('#previewCol').style.display = $('#previewCol').style.display === 'none' ? '' : 'none';
+    });
+    $('#copyObs').addEventListener('click', () => alert('Na próxima etapa eu separo a URL da overlay real para o OBS.'));
+    $('#newTab').addEventListener('click', () => window.open(location.href, '_blank'));
+    $('#publishBtn').addEventListener('click', () => alert('Na próxima etapa eu conecto esse botão à overlay publicada.'));
+    $$('.tab-btn').forEach(btn => btn.addEventListener('click', () => setScene(btn.dataset.tab)));
+
+    renderMatchesInputs();
+    renderPreview();
   </script>
 </body>
 </html>
