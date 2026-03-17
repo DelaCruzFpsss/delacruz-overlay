@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RP Controller + Overlay</title>
+  <style>
+    :root {
+      --bg: #05070b;
+      --panel: #0d1016;
+      --panel-2: #11151d;
+      --line: rgba(255,255,255,.08);
+      --text: #f5f7fb;
+      --muted: #98a2b3;
+      --red: #ff3b3b;
+      --red-2: #b31217;
+      --chip: rgba(255,59,59,.1);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: Inter, Arial, sans-serif; }
+    body { min-height: 100vh; }
+    button, input, textarea, select {
+      font: inherit;
+    }
+
+    .hidden { display: none !important; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(8px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+    }
+
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2a0b10, #12070a);
+      border: 1px solid rgba(255,59,59,.25);
+      display: grid;
+      place-items: center;
+      color: var(--red);
+      font-size: 18px;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: #11151d;
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-red {
+      background: linear-gradient(180deg, #ff4747, #d42020);
+      border-color: rgba(255,59,59,.35);
+      color: white;
+      font-weight: 700;
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px 18px 18px;
+    }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .hero h1 {
+      margin: 0 0 6px;
+      font-size: 38px;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status-card {
+      min-width: 300px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #ff8e8e;
+      background: var(--chip);
+      border: 1px solid rgba(255,59,59,.18);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 700;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 0 6px rgba(255,59,59,.08);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 22px;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      color: #ff7272;
+      margin-bottom: 16px;
+      font-weight: 800;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+
+    .field {
+      grid-column: span 12;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .field.col-6 { grid-column: span 6; }
+    .field.col-4 { grid-column: span 4; }
+    .field.col-3 { grid-column: span 3; }
+
+    label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: #05080e;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 13px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .block {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--line);
+    }
+
+    .matches {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .match-card {
+      background: #0a0e14;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .match-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .tiny {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .team-row {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr 88px;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .versus {
+      text-align: center;
+      color: var(--muted);
+      font-weight: 800;
+      margin: 8px 0;
+    }
+
+    .preview-shell {
+      background: #090c11;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      min-height: 100%;
+    }
+
+    .monitor-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-weight: 700;
+    }
+
+    .live-pill {
+      color: #ff9b9b;
+      border: 1px solid rgba(255,59,59,.2);
+      background: rgba(255,59,59,.08);
+      padding: 5px 9px;
+      border-radius: 999px;
+    }
+
+    .preview {
+      aspect-ratio: 16 / 9;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.06);
+      background: radial-gradient(circle at top, rgba(255,59,59,.12), transparent 30%), #000;
+      position: relative;
+    }
+
+    .overlay-wrap {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.72));
+      overflow: hidden;
+    }
+
+    .overlay-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 22px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .phase-box {
+      background: rgba(8,10,14,.78);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px;
+      padding: 16px 18px;
+      min-width: 280px;
+      backdrop-filter: blur(8px);
+    }
+
+    .phase-title {
+      font-size: 15px;
+      color: #b7c1d1;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .phase-name {
+      font-size: clamp(20px, 2vw, 34px);
+      font-weight: 900;
+    }
+
+    .timer-box {
+      background: linear-gradient(180deg, rgba(255,59,59,.12), rgba(255,59,59,.04));
+      border: 1px solid rgba(255,59,59,.25);
+      border-radius: 18px;
+      padding: 16px 20px;
+      text-align: center;
+      min-width: 180px;
+    }
+
+    .timer-label {
+      color: #ffc5c5;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .timer-value {
+      font-weight: 900;
+      font-size: clamp(34px, 3vw, 58px);
+      line-height: 1;
+    }
+
+    .sponsors {
+      position: absolute;
+      left: 26px;
+      right: 26px;
+      bottom: 92px;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: end;
+    }
+
+    .sponsor-logos, .sponsor-banners {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .logo-badge, .banner-badge {
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.04);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 700;
+      overflow: hidden;
+    }
+
+    .logo-badge { width: 82px; height: 82px; }
+    .banner-badge { width: 230px; height: 76px; }
+    .logo-badge img, .banner-badge img { width: 100%; height: 100%; object-fit: cover; }
+
+    .matches-bar {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: 24px;
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .overlay-match {
+      min-width: 280px;
+      padding: 14px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(8,10,14,.82);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    }
+
+    .om-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #b7c1d1;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      margin-bottom: 10px;
+      font-weight: 800;
+    }
+
+    .om-team {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 0;
+      font-weight: 800;
+    }
+
+    .om-team img {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+    }
+
+    .om-score {
+      min-width: 28px;
+      text-align: right;
+      color: #fff;
+    }
+
+    .ticker {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 44px;
+      background: linear-gradient(90deg, #6d0f16, #22090c);
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .ticker-track {
+      white-space: nowrap;
+      display: inline-block;
+      padding-left: 100%;
+      animation: marquee 20s linear infinite;
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .tab {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #0c1016;
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .obs-link {
+      font-size: 13px;
+      color: #9ec4ff;
+      word-break: break-all;
+      margin-top: 12px;
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 18px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: 1fr; }
+      .hero { flex-direction: column; align-items: stretch; }
+      .status-card { min-width: unset; }
+    }
+
+    @media (max-width: 720px) {
+      .hero h1 { font-size: 28px; }
+      .team-row { grid-template-columns: 1fr; }
+      .overlay-top, .sponsors, .matches-bar { position: static; }
+      .preview { aspect-ratio: auto; min-height: 720px; }
+      .overlay-wrap { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+      .ticker { position: static; margin-top: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div id="controllerView">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-badge">▣</div>
+        <div>RP Controller</div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="togglePreviewBtn">Esconder overlay</button>
+        <button class="btn btn-red" id="copyLinkBtn">Copiar link OBS</button>
+        <button class="btn" id="openOverlayBtn">Nova aba</button>
+      </div>
+    </div>
+
+    <div class="page">
+      <div class="hero">
+        <div>
+          <h1>Próximos Jogos</h1>
+          <div class="sub">Configure os dados abaixo antes de enviar para o OBS.</div>
+        </div>
+        <div class="status-card">
+          <div>
+            <div class="tiny">Status OBS</div>
+            <div class="status-chip"><span class="dot"></span> <span id="statusScene">Próximos Jogos</span></div>
+          </div>
+          <button class="btn btn-red" id="publishBtn">Atualizar live</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <div class="field-grid">
+            <div class="field col-6">
+              <label for="phase">Título da fase</label>
+              <input id="phase" value="FASE DE GRUPOS" />
+            </div>
+            <div class="field col-3">
+              <label for="minutes">Timer (min)</label>
+              <input id="minutes" type="number" min="0" max="999" value="10" />
+            </div>
+            <div class="field col-3">
+              <label for="seconds">Timer (seg)</label>
+              <input id="seconds" type="number" min="0" max="59" value="0" />
+            </div>
+            <div class="field">
+              <label for="tickerText">Texto animado do rodapé (ticker)</label>
+              <input id="tickerText" value="REDPLAY VALORANT TOUR | FASE DE GRUPOS | NARRADOR: @tches" />
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="panel-title">Patrocinadores</div>
+            <div class="field">
+              <label for="smallLogos">Logos pequenos (URLs separadas por vírgula)</label>
+              <textarea id="smallLogos">https://i.imgur.com/KzUHwG8.png</textarea>
+            </div>
+            <div class="field">
+              <label for="bigBanners">Banners grandes (URLs separadas por vírgula)</label>
+              <textarea id="bigBanners">https://i.imgur.com/mAvKsJN.png, https://i.imgur.com/8cvB0Zf.png</textarea>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="match-head">
+              <div class="panel-title" style="margin:0;">Confrontos e placares</div>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <select id="layoutMode" style="width:auto; min-width: 180px;">
+                  <option value="1">Layout: 1 jogo (centro)</option>
+                  <option value="2">Layout: 2 jogos</option>
+                  <option value="3">Layout: 3 jogos</option>
+                </select>
+                <button class="btn" id="addMatchBtn">+ jogo</button>
+              </div>
+            </div>
+            <div class="matches" id="matchesContainer"></div>
+          </div>
+
+          <div class="tabs">
+            <div class="tab">Próximos Jogos</div>
+            <div class="tab">Tela de Pause</div>
+            <div class="tab">Sorteio de Grupos</div>
+            <div class="tab">Detalhes da Partida</div>
+            <div class="tab">Estatísticas MVP</div>
+            <div class="tab">Tabela de Classificação</div>
+          </div>
+
+          <div class="footer-note">
+            Esse arquivo já funciona sozinho em HTML puro. Você pode abrir localmente no navegador e usar o link da overlay em uma fonte de navegador no OBS.
+          </div>
+        </div>
+
+        <div class="panel" id="previewPanel">
+          <div class="preview-shell">
+            <div class="monitor-label">
+              <span>Monitor (link do OBS)</span>
+              <span class="live-pill">live</span>
+            </div>
+            <div class="preview" id="previewMount"></div>
+            <div class="obs-link" id="obsLinkText"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <template id="overlayTemplate">
+    <div class="overlay-wrap">
+      <div class="overlay-top">
+        <div class="phase-box">
+          <div class="phase-title">Próxima fase</div>
+          <div class="phase-name" data-phase></div>
+        </div>
+        <div class="timer-box">
+          <div class="timer-label">Contagem regressiva</div>
+          <div class="timer-value" data-timer>10:00</div>
+        </div>
+      </div>
+
+      <div class="sponsors">
+        <div class="sponsor-logos" data-logos></div>
+        <div class="sponsor-banners" data-banners></div>
+      </div>
+
+      <div class="matches-bar" data-matches></div>
+
+      <div class="ticker">
+        <div class="ticker-track" data-ticker></div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    const STORAGE_KEY = 'rp-controller-state-v1';
+    const DEFAULT_STATE = {
+      phase: 'FASE DE GRUPOS',
+      minutes: 10,
+      seconds: 0,
+      tickerText: 'REDPLAY VALORANT TOUR | FASE DE GRUPOS | NARRADOR: @tches',
+      smallLogos: 'https://i.imgur.com/KzUHwG8.png',
+      bigBanners: 'https://i.imgur.com/mAvKsJN.png, https://i.imgur.com/8cvB0Zf.png',
+      layoutMode: '1',
+      publishedAt: Date.now(),
+      matches: [
+        { team1: 'VNTS', logo1: 'https://placehold.co/80x80/png?text=V', score1: '0', team2: 'DKF', logo2: 'https://placehold.co/80x80/png?text=D', score2: '0' }
+      ]
+    };
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        return { ...DEFAULT_STATE, ...saved, matches: saved?.matches?.length ? saved.matches : DEFAULT_STATE.matches };
+      } catch {
+        return structuredClone(DEFAULT_STATE);
+      }
+    }
+
+    let state = loadState();
+    let countdownInterval = null;
+    let remainingSeconds = Math.max(0, (Number(state.minutes) || 0) * 60 + (Number(state.seconds) || 0));
+
+    const $ = (sel) => document.querySelector(sel);
+    const matchesContainer = $('#matchesContainer');
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function parseUrls(text) {
+      return String(text || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function renderMatchInputs() {
+      matchesContainer.innerHTML = '';
+      state.matches.forEach((match, index) => {
+        const card = document.createElement('div');
+        card.className = 'match-card';
+        card.innerHTML = `
+          <div class="match-head">
+            <div><strong>Jogo ${index + 1}</strong></div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn" data-action="swap" data-index="${index}">Inverter times</button>
+              <button class="btn" data-action="remove" data-index="${index}">Remover</button>
+            </div>
+          </div>
+          <div class="team-row">
+            <div>
+              <label>Nome time 1</label>
+              <input data-bind="team1" data-index="${index}" value="${escapeHtml(match.team1)}">
+            </div>
+            <div>
+              <label>Logo time 1 (URL)</label>
+              <input data-bind="logo1" data-index="${index}" value="${escapeHtml(match.logo1)}">
+            </div>
+            <div>
+              <label>Placar T1</label>
+              <input data-bind="score1" data-index="${index}" value="${escapeHtml(match.score1)}">
+            </div>
+          </div>
+          <div class="versus">VS</div>
+          <div class="team-row">
+            <div>
+              <label>Nome time 2</label>
+              <input data-bind="team2" data-index="${index}" value="${escapeHtml(match.team2)}">
+            </div>
+            <div>
+              <label>Logo time 2 (URL)</label>
+              <input data-bind="logo2" data-index="${index}" value="${escapeHtml(match.logo2)}">
+            </div>
+            <div>
+              <label>Placar T2</label>
+              <input data-bind="score2" data-index="${index}" value="${escapeHtml(match.score2)}">
+            </div>
+          </div>
+        `;
+        matchesContainer.appendChild(card);
+      });
+
+      matchesContainer.querySelectorAll('[data-bind]').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const index = Number(e.target.dataset.index);
+          const key = e.target.dataset.bind;
+          state.matches[index][key] = e.target.value;
+          saveState();
+          updatePreview();
+        });
+      });
+
+      matchesContainer.querySelectorAll('[data-action="swap"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const i = Number(btn.dataset.index);
+          const m = state.matches[i];
+          [m.team1, m.team2] = [m.team2, m.team1];
+          [m.logo1, m.logo2] = [m.logo2, m.logo1];
+          [m.score1, m.score2] = [m.score2, m.score1];
+          saveState();
+          renderMatchInputs();
+          updatePreview();
+        });
+      });
+
+      matchesContainer.querySelectorAll('[data-action="remove"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (state.matches.length <= 1) return;
+          const i = Number(btn.dataset.index);
+          state.matches.splice(i, 1);
+          saveState();
+          renderMatchInputs();
+          updatePreview();
+        });
+      });
+    }
+
+    function bindFields() {
+      ['phase', 'minutes', 'seconds', 'tickerText', 'smallLogos', 'bigBanners', 'layoutMode'].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = state[id] ?? '';
+        el.addEventListener('input', () => {
+          state[id] = el.value;
+          if (id === 'minutes' || id === 'seconds') {
+            remainingSeconds = Math.max(0, (Number(state.minutes) || 0) * 60 + (Number(state.seconds) || 0));
+          }
+          saveState();
+          updatePreview();
+        });
+      });
+    }
+
+    function createOverlayNode(targetState, forPreview = false) {
+      const fragment = document.getElementById('overlayTemplate').content.cloneNode(true);
+      const wrap = fragment.querySelector('.overlay-wrap');
+      fragment.querySelector('[data-phase]').textContent = targetState.phase || 'FASE';
+      fragment.querySelector('[data-timer]').textContent = formatTime(remainingSeconds);
+      fragment.querySelector('[data-ticker]').textContent = ((targetState.tickerText || '') + '   •   ').repeat(4);
+
+      const logoContainer = fragment.querySelector('[data-logos]');
+      parseUrls(targetState.smallLogos).slice(0, 4).forEach(url => {
+        const item = document.createElement('div');
+        item.className = 'logo-badge';
+        item.innerHTML = `<img src="${url}" alt="logo">`;
+        logoContainer.appendChild(item);
+      });
+
+      const bannerContainer = fragment.querySelector('[data-banners]');
+      parseUrls(targetState.bigBanners).slice(0, 3).forEach(url => {
+        const item = document.createElement('div');
+        item.className = 'banner-badge';
+        item.innerHTML = `<img src="${url}" alt="banner">`;
+        bannerContainer.appendChild(item);
+      });
+
+      const matchContainer = fragment.querySelector('[data-matches]');
+      const matchCount = Number(targetState.layoutMode || 1);
+      targetState.matches.slice(0, matchCount).forEach((m, i) => {
+        const card = document.createElement('div');
+        card.className = 'overlay-match';
+        card.innerHTML = `
+          <div class="om-head"><span>Jogo ${i + 1}</span><span>Ao vivo</span></div>
+          <div class="om-team">
+            <span>${escapeHtml(m.team1 || 'Time 1')}</span>
+            <img src="${escapeHtml(m.logo1 || '')}" alt="${escapeHtml(m.team1 || 'Time 1')}">
+            <span class="om-score">${escapeHtml(m.score1 || '0')}</span>
+          </div>
+          <div class="om-team">
+            <span>${escapeHtml(m.team2 || 'Time 2')}</span>
+            <img src="${escapeHtml(m.logo2 || '')}" alt="${escapeHtml(m.team2 || 'Time 2')}">
+            <span class="om-score">${escapeHtml(m.score2 || '0')}</span>
+          </div>
+        `;
+        matchContainer.appendChild(card);
+      });
+
+      if (forPreview) wrap.dataset.preview = '1';
+      return fragment;
+    }
+
+    function formatTime(total) {
+      const mins = Math.floor(total / 60).toString().padStart(2, '0');
+      const secs = Math.floor(total % 60).toString().padStart(2, '0');
+      return `${mins}:${secs}`;
+    }
+
+    function updatePreview() {
+      const mount = document.getElementById('previewMount');
+      mount.innerHTML = '';
+      mount.appendChild(createOverlayNode(state, true));
+      const overlayUrl = `${location.pathname}?overlay=1`;
+      document.getElementById('obsLinkText').textContent = location.origin === 'null' ? overlayUrl : new URL(overlayUrl, location.href).href;
+    }
+
+    function publishState() {
+      state.publishedAt = Date.now();
+      saveState();
+      localStorage.setItem(STORAGE_KEY + ':published', JSON.stringify(state));
+      document.getElementById('statusScene').textContent = 'Próximos Jogos';
+      updatePreview();
+      alert('Overlay atualizada com sucesso.');
+    }
+
+    function addMatch() {
+      state.matches.push({ team1: 'Time 1', logo1: 'https://placehold.co/80x80/png?text=1', score1: '0', team2: 'Time 2', logo2: 'https://placehold.co/80x80/png?text=2', score2: '0' });
+      saveState();
+      renderMatchInputs();
+      updatePreview();
+    }
+
+    function startTimerLoop() {
+      clearInterval(countdownInterval);
+      countdownInterval = setInterval(() => {
+        if (remainingSeconds > 0) remainingSeconds--;
+        const timerEl = document.querySelector('[data-timer]');
+        if (timerEl) timerEl.textContent = formatTime(remainingSeconds);
+      }, 1000);
+    }
+
+    function mountController() {
+      bindFields();
+      renderMatchInputs();
+      updatePreview();
+      startTimerLoop();
+
+      document.getElementById('publishBtn').addEventListener('click', publishState);
+      document.getElementById('addMatchBtn').addEventListener('click', addMatch);
+
+      document.getElementById('togglePreviewBtn').addEventListener('click', () => {
+        const panel = document.getElementById('previewPanel');
+        panel.classList.toggle('hidden');
+      });
+
+      document.getElementById('copyLinkBtn').addEventListener('click', async () => {
+        const url = `${location.origin}${location.pathname}?overlay=1`;
+        try {
+          await navigator.clipboard.writeText(url);
+          alert('Link da overlay copiado.');
+        } catch {
+          alert('Não consegui copiar automaticamente. Use este link: ' + url);
+        }
+      });
+
+      document.getElementById('openOverlayBtn').addEventListener('click', () => {
+        window.open(`${location.pathname}?overlay=1`, '_blank');
+      });
+    }
+
+    function mountOverlayOnly() {
+      document.body.innerHTML = '';
+      const published = JSON.parse(localStorage.getItem(STORAGE_KEY + ':published') || 'null') || state;
+      const holder = document.createElement('div');
+      holder.style.width = '100vw';
+      holder.style.height = '100vh';
+      holder.appendChild(createOverlayNode(published));
+      document.body.appendChild(holder);
+
+      let overlaySeconds = Math.max(0, (Number(published.minutes) || 0) * 60 + (Number(published.seconds) || 0));
+      setInterval(() => {
+        if (overlaySeconds > 0) overlaySeconds--;
+        const timerEl = document.querySelector('[data-timer]');
+        if (timerEl) timerEl.textContent = formatTime(overlaySeconds);
+      }, 1000);
+
+      window.addEventListener('storage', (event) => {
+        if (event.key === STORAGE_KEY + ':published') {
+          const latest = JSON.parse(event.newValue || 'null');
+          if (!latest) return;
+          overlaySeconds = Math.max(0, (Number(latest.minutes) || 0) * 60 + (Number(latest.seconds) || 0));
+          document.body.innerHTML = '';
+          const fresh = document.createElement('div');
+          fresh.style.width = '100vw';
+          fresh.style.height = '100vh';
+          fresh.appendChild(createOverlayNode(latest));
+          document.body.appendChild(fresh);
+        }
+      });
+    }
+
+    const params = new URLSearchParams(location.search);
+    const isOverlay = params.get('overlay') === '1';
+
+    if (isOverlay) {
+      mountOverlayOnly();
+    } else {
+      mountController();
+    }
+  </script>
+</body>
+</html>
